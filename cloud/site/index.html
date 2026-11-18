@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>🎄 圣诞快乐 · Merry Christmas</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:#03070d;overflow:hidden}
+  body{font-family:"华文中宋","STZhongsong","Songti SC",Georgia,"Times New Roman",serif;-webkit-font-smoothing:antialiased;
+       opacity:0;transition:opacity .75s ease}
+  body.ready{opacity:1}
+  #stage{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:pointer;touch-action:none}
+
+  .vig{position:fixed;inset:0;pointer-events:none;
+       background:radial-gradient(ellipse 80% 64% at 50% 46%,rgba(0,0,0,0) 40%,rgba(0,0,0,.40) 78%,rgba(0,0,0,.72) 100%)}
+
+  .words{position:fixed;left:0;right:0;bottom:6vh;text-align:center;pointer-events:none;
+         opacity:0;transform:translateY(12px);transition:opacity 1.4s ease,transform 1.4s ease}
+  .words.on{opacity:1;transform:none}
+  .words h1{margin:0;font-weight:400;font-size:clamp(20px,3.5vw,42px);letter-spacing:.34em;
+            text-indent:.34em;color:#ffe9c4;
+            text-shadow:0 0 16px rgba(255,190,110,.55),0 0 46px rgba(255,140,50,.30)}
+  .words .cn{margin:.85em 0 0;font-size:clamp(11px,1.25vw,13px);letter-spacing:.42em;text-indent:.42em;
+             color:#9dbdd2;text-shadow:0 0 12px rgba(110,180,215,.30)}
+  .words .hint{margin:.55em 0 0;font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+               font-size:clamp(10px,1.05vw,12px);letter-spacing:.22em;text-indent:.22em;
+               color:#7c98ad;opacity:.85}
+
+  /* 工具条（只在编辑态出现） */
+  .tools{position:fixed;right:2.4vw;bottom:3vh;display:flex;align-items:center;gap:9px;z-index:6;
+         font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif}
+  .tools button{-webkit-appearance:none;appearance:none;cursor:pointer;
+    font:inherit;font-size:13px;letter-spacing:.05em;color:#ffe6bd;
+    padding:8px 14px;border-radius:999px;
+    background:rgba(255,224,168,.07);
+    border:1px solid rgba(255,214,150,.32);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+    transition:background .25s,border-color .25s,box-shadow .25s,transform .25s}
+  .tools button:hover{background:rgba(255,224,168,.16);border-color:rgba(255,214,150,.62);
+    box-shadow:0 0 22px rgba(255,190,110,.22);transform:translateY(-1px)}
+  .tools button:active{transform:translateY(0) scale(.98)}
+  #btnExport{color:#0b1622;background:rgba(255,205,130,.9);border-color:rgba(255,225,180,.9)}
+  #btnExport:hover{background:rgba(255,215,150,1);box-shadow:0 0 26px rgba(255,190,110,.4)}
+
+  .tip{position:fixed;left:2.6vw;bottom:3.4vh;z-index:6;pointer-events:none;
+       font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+       font-size:12px;color:#7f9cb2;opacity:.5;transition:.45s;white-space:nowrap}
+  .tip.on{color:#ffd79a;opacity:1;text-shadow:0 0 14px rgba(255,190,110,.55)}
+
+  /* 声音开关 */
+  .snd{position:fixed;right:2.2vw;top:2.4vh;z-index:7;width:38px;height:38px;padding:0;
+       display:flex;align-items:center;justify-content:center;cursor:pointer;
+       font-size:15px;line-height:1;color:#ffe6bd;
+       background:rgba(255,224,168,.07);border:1px solid rgba(255,214,150,.30);border-radius:50%;
+       -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+       transition:background .25s,border-color .25s,opacity .25s,transform .25s}
+  .snd:hover{background:rgba(255,224,168,.16);border-color:rgba(255,214,150,.62);transform:translateY(-1px)}
+  .snd.off{opacity:.5}
+
+  /* 大图 */
+  .lb{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;
+      background:rgba(2,6,12,.9);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+      cursor:zoom-out;opacity:0;transition:opacity .28s}
+  .lb.on{display:flex;opacity:1}
+  .lb img{max-width:88vw;max-height:66vh;border-radius:6px;
+          border:1px solid rgba(255,214,150,.55);
+          box-shadow:0 30px 90px rgba(0,0,0,.75),0 0 60px rgba(255,180,90,.18);
+          transform:scale(.92);opacity:.6;transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .32s}
+  .lb.on img{transform:none;opacity:1}
+  .lbbox{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:88vw}
+  .lbinfo{text-align:center;max-width:88vw}
+  .lbname{font-size:15px;color:#ffdfae;letter-spacing:.08em;margin-bottom:6px}
+  .lbmsg{font-size:14px;color:#cfe0ee;line-height:1.7;letter-spacing:.02em;
+         word-break:break-word;white-space:pre-wrap}
+  .lbhint{position:absolute;bottom:4vh;left:0;right:0;text-align:center;font-size:12px;
+          letter-spacing:.3em;color:#8aa6ba;font-family:"Microsoft YaHei",system-ui,sans-serif}
+
+  @media (max-width:820px){
+    .tools{right:3vw;bottom:2.2vh;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:60vw}
+    .tools button{font-size:12px;padding:7px 11px}
+    .tip{left:3vw;bottom:11vh;font-size:11px}
+  }
+
+  /* ===== 云端版：挂祝福按钮与弹层 ===== */
+  .dots{position:fixed;left:50%;bottom:3.2vh;transform:translateX(-50%);z-index:12;
+        display:flex;gap:9px;align-items:center}
+  .dots i{display:block;width:8px;height:8px;border-radius:50%;
+          background:rgba(200,225,245,.28);cursor:pointer;
+          transition:background .2s,transform .2s,box-shadow .2s}
+  .dots i.on{background:#ffd79a;transform:scale(1.3);
+             box-shadow:0 0 10px rgba(255,190,110,.85)}
+  .giftbtn{position:fixed;right:3vw;bottom:2.4vh;z-index:12;
+    background:linear-gradient(135deg,#b8342a,#e0632f);color:#fff5e6;
+    border:1px solid rgba(255,214,150,.45);border-radius:999px;padding:11px 20px;
+    font-size:14px;letter-spacing:.06em;cursor:pointer;font-family:inherit;
+    box-shadow:0 10px 30px rgba(180,50,30,.45),0 0 26px rgba(255,150,80,.25);
+    transition:transform .18s,box-shadow .18s}
+  .giftbtn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(180,50,30,.55),0 0 34px rgba(255,150,80,.35)}
+  .giftbtn:active{transform:translateY(0) scale(.98)}
+
+  .sheet{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;
+    background:rgba(2,8,16,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:5vw}
+  .sheet.on{display:flex}
+  .sheet-card{position:relative;width:min(420px,100%);max-height:88vh;overflow:auto;
+    background:linear-gradient(180deg,#10203a,#0a1526);border:1px solid rgba(255,214,150,.35);
+    border-radius:14px;padding:24px 22px 18px;
+    box-shadow:0 30px 90px rgba(0,0,0,.7),0 0 70px rgba(255,180,90,.12)}
+  .sheet-card h3{margin:0 0 4px;font-size:19px;font-weight:600;color:#ffdfae;letter-spacing:.05em}
+  .sheet-sub{margin:0 0 16px;font-size:12px;color:#8aa6ba;letter-spacing:.04em}
+  .sheet-x{position:absolute;top:10px;right:12px;background:none;border:0;color:#8aa6ba;
+    font-size:22px;line-height:1;cursor:pointer;padding:4px 6px}
+  .sheet-x:hover{color:#ffdfae}
+  .pick{display:flex;align-items:center;justify-content:center;height:118px;margin-bottom:12px;
+    border:1px dashed rgba(255,214,150,.4);border-radius:10px;cursor:pointer;
+    color:#9fb6c8;font-size:13px;letter-spacing:.06em;background:rgba(255,255,255,.02);
+    overflow:hidden;transition:border-color .2s,background .2s}
+  .pick:hover{border-color:rgba(255,214,150,.75);background:rgba(255,255,255,.04)}
+  .pick img{width:100%;height:100%;object-fit:cover;display:block}
+  .sheet-in{display:block;width:100%;box-sizing:border-box;margin-bottom:10px;
+    background:rgba(255,255,255,.05);border:1px solid rgba(140,170,200,.25);border-radius:9px;
+    padding:11px 12px;color:#e8f1f8;font-size:14px;font-family:inherit;outline:none}
+  .sheet-in:focus{border-color:rgba(255,214,150,.6)}
+  .sheet-in::placeholder{color:#6c869a}
+  .sheet-ok{width:100%;margin-top:6px;padding:12px;border:0;border-radius:10px;cursor:pointer;
+    background:linear-gradient(135deg,#b8342a,#e0632f);color:#fff5e6;font-size:15px;
+    letter-spacing:.1em;font-family:inherit;transition:opacity .2s}
+  .sheet-ok:disabled{opacity:.55;cursor:default}
+  .sheet-err{margin:8px 0 0;font-size:12px;color:#ff9a8a;min-height:16px;text-align:center}
+  .sheet-note{margin:10px 0 0;font-size:11px;line-height:1.6;color:#6c869a}
+
+  @media (max-width:820px){
+    .giftbtn{right:3vw;bottom:2.2vh;padding:10px 16px;font-size:13px}
+  }
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<div class="vig"></div>
+<div class="words" id="words">
+  <h1>Merry Christmas</h1>
+  <p class="cn">圣 诞 快 乐 · 2026</p>
+  <p class="hint">点照片看大图 · 按住拖动可以转</p>
+</div>
+
+<div class="tools" id="tools">
+  <button id="btnPhoto" type="button">＋ 挂照片</button>
+  <button id="btnReplay" type="button">重播开场</button>
+  <button id="btnClear" type="button">清空</button>
+  <button id="btnExport" type="button">打包网页</button>
+</div>
+<span id="tip" class="tip">把图片拖进来，或点「挂照片」</span>
+<button id="btnSound" class="snd off" type="button" title="背景音乐">🔇</button>
+<input id="picker" type="file" accept="image/*" multiple hidden>
+
+<!-- 云端版：挂祝福 -->
+<button id="btnGift" class="giftbtn" type="button" style="display:none">🎁 挂我的祝福</button>
+<div class="dots" id="dots" style="display:none"></div>
+
+<div class="sheet" id="sheet">
+  <div class="sheet-card">
+    <button class="sheet-x" id="gCancel" type="button" aria-label="关闭">×</button>
+    <h3>挂一句祝福</h3>
+    <p class="sheet-sub">照片会飞上那棵树，所有人都能看见</p>
+
+    <label class="pick" id="gPickLabel">
+      <input id="gPicker" type="file" accept="image/*" hidden>
+      <span id="gPrev">＋ 选一张照片</span>
+    </label>
+
+    <input id="gName" class="sheet-in" type="text" maxlength="12" placeholder="你的名字（最多12字）" autocomplete="off">
+    <input id="gMsg" class="sheet-in" type="text" maxlength="40" placeholder="一句话（必填，最多40字）" autocomplete="off">
+
+    <button id="gSend" class="sheet-ok" type="button">挂上去</button>
+    <p class="sheet-err" id="gErr"></p>
+    <p class="sheet-note">🕯 树上最多挂 12 张，每人每天 3 次。照片公开可见，别传不想被看到的。</p>
+  </div>
+</div>
+
+<div class="lb" id="lb">
+  <div class="lbbox">
+    <img id="lbImg" alt="">
+    <div class="lbinfo">
+      <div class="lbname" id="lbName"></div>
+      <div class="lbmsg" id="lbMsg"></div>
+    </div>
+  </div>
+  <div class="lbhint">点任意处关闭</div>
+</div>
+
+<script id="payload" type="application/json">{"share":true,"photos":[],"net":true}</script>
+<script>
+(function () {
+  'use strict';
+
+  /* ================= 配置：打包过的页面会带上照片 ================= */
+  var cfg = { share: false, photos: [], net: false };
+  try {
+    var rawCfg = document.getElementById('payload').textContent.trim();
+    if (rawCfg) cfg = JSON.parse(rawCfg);
+  } catch (e) { cfg = { share: false, photos: [], net: false }; }
+  var EDIT = !cfg.share;
+  var NET = !!cfg.net;          /* 云端版：能挂祝福、能轮询别人的照片 */
+
+  var TAU = Math.PI * 2;
+  var cvs = document.getElementById('stage');
+  var ctx = cvs.getContext('2d', { alpha: false });
+  var W = 0, H = 0, DPR = 1, bg = null, flakes = [];
+
+  /* ================= 颜色 / 光斑 ================= */
+  function hex2rgb(h) {
+    h = h.replace('#', '');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+  function rgba(h, a) {
+    var c = hex2rgb(h);
+    return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')';
+  }
+  var sprites = {};
+  function sprite(color, lamp) {
+    var key = color + (lamp ? '*' : '');
+    if (sprites[key]) return sprites[key];
+    var S = 64, c = document.createElement('canvas');
+    c.width = c.height = S;
+    var g = c.getContext('2d');
+    var gr = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+    if (lamp) {
+      gr.addColorStop(0, 'rgba(255,255,255,.98)');
+      gr.addColorStop(.11, rgba(color, 1));
+    } else {
+      gr.addColorStop(0, rgba(color, .98));
+    }
+    gr.addColorStop(.30, rgba(color, .72));
+    gr.addColorStop(.56, rgba(color, .18));
+    gr.addColorStop(.80, rgba(color, .05));
+    gr.addColorStop(1, rgba(color, 0));
+    g.fillStyle = gr;
+    g.fillRect(0, 0, S, S);
+    sprites[key] = c;
+    return c;
+  }
+
+  /* ================= 造树（叶序 / phyllotaxis：黄金角 137.507°） ================= */
+  var COUNT = 2000;
+  var GOLDEN = 2.399963229728653;      // 黄金角（弧度）
+  var GREENS = ['#1fd47f', '#12b76a', '#2ae38c', '#0f8f57', '#3ef0a0'];
+  var LIGHTS = ['#ffd479', '#ffb35c', '#8fe3ff', '#ff7d6b', '#fff3cd'];
+  var seed = 20261225;
+  function rand() {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  }
+  var pts = [];
+  function build() {
+    for (var i = 0; i < COUNT; i++) {
+      var u = (i + .5) / COUNT;
+
+      /* 圆锥侧面在底部更宽 —— 用 1-sqrt(1-u) 让粒子按"表面积"均匀撒开，
+         于是下半部分自然更密，像真树的枝层 */
+      var hf = 1 - Math.sqrt(1 - u);
+
+      /* 每个点转一个黄金角：相邻点错开 137.5°，形成无重复的叶序排布 */
+      var ang = i * GOLDEN;
+
+      /* 指数轮廓：底宽顶尖 */
+      var baseR = Math.pow(1 - hf, 1.0);
+      var rn = baseR * (.95 + rand() * .09);
+
+      /* 18% 往里塞一点，避免看着像空壳；内层压暗，让外壳勾出锥形轮廓 */
+      var inner = rand() < .18;
+      if (inner) rn *= .55 + rand() * .40;
+
+      /* 底部微微收口，别一刀切 */
+      rn *= .90 + .10 * Math.min(1, hf / .06);
+
+      var isLight = rand() < .145;
+      var a0 = isLight ? .80 + rand() * .20 : (.55 + rand() * .38) * (inner ? .55 : 1.15);
+      if (a0 > 1) a0 = 1;
+      pts.push({
+        type: 0, ang: ang, hf: hf, rn: rn,
+        x: 0, y: 0, z: 0,
+        size: isLight ? 2.5 + rand() * 1.6 : 1.5 + rand() * 1.1,
+        glow: isLight ? 4.4 : 3.0,
+        color: isLight ? LIGHTS[(rand() * LIGHTS.length) | 0]
+                       : GREENS[(rand() * GREENS.length) | 0],
+        lamp: isLight,
+        baseA: a0,
+        amp: isLight ? .42 : .18,
+        freq: 1.1 + rand() * 2.8,
+        phase: rand() * TAU
+      });
+    }
+  }
+  build();
+
+  /* ================= 多树：每棵树用自己的 seed 和配色 ================= */
+  var TREE_SEED_BASE = 20261225;
+  var BASE_GREENS = GREENS.slice();
+  var BASE_LIGHTS = LIGHTS.slice();
+  var treeIdx = 0;
+  var treeCount = 1;
+  var giftByTree = {};      /* { treeIdx0: [giftData, ...] } */
+
+  function seedOf(i) {
+    /* 7919 是质数，让相邻两棵的 seed 差得远一点 */
+    return TREE_SEED_BASE + i * 7919;
+  }
+
+  /* 光晕精灵缓存只认 #rrggbb，所以这里直接输出 hex，别用 hsl() 字符串 */
+  function hslToHex(h, s, l) {
+    s = Math.max(0, Math.min(100, s)) / 100;
+    l = Math.max(0, Math.min(100, l)) / 100;
+    var a = s * Math.min(l, 1 - l);
+    function f(n) {
+      var k = (n + h / 30) % 12;
+      var c = l - a * Math.max(-1, Math.min(k - 3, Math.min(9 - k, 1)));
+      var v = Math.round(255 * c).toString(16);
+      return v.length === 1 ? '0' + v : v;
+    }
+    return '#' + f(0) + f(8) + f(4);
+  }
+
+  /* 第 1 棵保持经典绿金；第 2 棵起按 seed 随机出色相 */
+  function paletteOf(i) {
+    if (i === 0) return { greens: BASE_GREENS, lights: BASE_LIGHTS };
+
+    var s = seedOf(i) ^ 0x9e3779b9;
+    function r() {
+      s = (s * 1664525 + 1013904223) % 4294967296;
+      return s / 4294967296;
+    }
+
+    var baseH = r() * 360;
+    var greens = [];
+    for (var g = 0; g < 5; g++) {
+      var gh = (baseH + (r() * 46 - 23) + 360) % 360;
+      greens.push(hslToHex(gh, 52 + r() * 34, 30 + r() * 28));
+    }
+    var lights = [];
+    for (var L = 0; L < 5; L++) {
+      var lh = (baseH + 110 + r() * 190) % 360;
+      lights.push(hslToHex(lh, 68 + r() * 30, 66 + r() * 20));
+    }
+    return { greens: greens, lights: lights };
+  }
+
+  /* ================= 背景 / 雪 ================= */
+  function paintBG() {
+    if (!bg) bg = document.createElement('canvas');
+    bg.width = Math.max(1, Math.round(W * DPR));
+    bg.height = Math.max(1, Math.round(H * DPR));
+    var g = bg.getContext('2d');
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    var lin = g.createLinearGradient(0, 0, 0, H);
+    lin.addColorStop(0, '#04080f');
+    lin.addColorStop(.55, '#071120');
+    lin.addColorStop(1, '#0a1727');
+    g.fillStyle = lin;
+    g.fillRect(0, 0, W, H);
+    var rad = g.createRadialGradient(W * .5, H * .46, 0, W * .5, H * .46, Math.max(W, H) * .66);
+    rad.addColorStop(0, 'rgba(38,92,124,.26)');
+    rad.addColorStop(.6, 'rgba(20,55,80,.08)');
+    rad.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rad;
+    g.fillRect(0, 0, W, H);
+  }
+  function makeFlakes() {
+    var n = Math.round(Math.min(170, Math.max(60, W * H / 15000)));
+    flakes = [];
+    for (var i = 0; i < n; i++) {
+      flakes.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: .6 + Math.random() * 1.7,
+        vy: 14 + Math.random() * 36,
+        vx: -9 + Math.random() * 18,
+        a: .22 + Math.random() * .52,
+        ph: Math.random() * TAU
+      });
+    }
+  }
+  function resize() {
+    W = cvs.clientWidth || window.innerWidth;
+    H = cvs.clientHeight || window.innerHeight;
+    /* 大屏少给点像素：画质几乎看不出，填充率省 40% */
+    var cap = (W * H > 1.2e6) ? 1.5 : 1.75;
+    DPR = Math.min(window.devicePixelRatio || 1, cap);
+    cvs.width = Math.round(W * DPR);
+    cvs.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    paintBG();
+    makeFlakes();
+    computeGeom();
+  }
+
+  /* 场景几何一处算清，frame 与离屏缓存共用 */
+  var gHt = 0, gBaseR = 0, gCx = 0, gCy = 0, gBaseY = 0, gD = 0;
+  function computeGeom() {
+    gHt = Math.min(H * .66, W * .92, 620);
+    gBaseR = gHt * .30;
+    gCx = W * .5;
+    gCy = H * .47;
+    gD = Math.max(760, gBaseR * 4.6);
+    gBaseY = gCy + gHt * .5;
+  }
+
+  /* ================= 提示条 ================= */
+  var tipEl = document.getElementById('tip');
+  var tipTimer = 0;
+  var tipBase = EDIT ? '把图片拖进来，或点「挂照片」' : '';
+  function flashTip(msg) {
+    if (!tipEl) return;
+    tipEl.textContent = msg;
+    tipEl.className = 'tip on';
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(function () {
+      tipEl.textContent = tipBase;
+      tipEl.className = 'tip';
+    }, 2600);
+  }
+
+  /* ================= 状态 ================= */
+  var state = 'closed';          // closed | opening | open
+  var openT = 0;
+  var bootLoading = false;
+
+  /* 开场时间轴：0-2s 树生长 → 2.05-3.0s 落星 → 3.25-4.0s 落盒 → 4.35s 提示 */
+  var introT = 0, INTRO_END = 4.4;
+  var introOff = false, starLanded = false, boxLanded = false;
+  var heroDrop = 0, heroSquash = 1, heroSince = 99;
+  var shake = 0;
+  var STAR_HOLD = 3.45;                 // 星落定后停在这里等点击
+  var starClicked = false, boxT = -1, starNudge = 0;
+  var starHover = false, starHoverP = 0;
+  var starSX = 0, starSY = 0, starR = 60, starReady = false;
+  var rot = 0, spin = 0, dragging = false, lastX = 0, downX = 0, downY = 0, moved = false;
+
+  var MAX_PHOTO = 12;
+  var CARD_W = 66, CARD_H = 82, CARD_PAD = 4, CARD_FOOT = 13;
+  var photos = [];
+  var hoverObj = null;
+  var sparks = [];
+
+  var heroX = 0, heroY = 0, heroZ = 0, heroS = 90, heroF = 1;
+  var scr = { x: 0, y: 0, z: 0 };   // 临时投影结果
+
+  /* ================= 照片：加载 / 裁剪 / 编码 ================= */
+  function normalize(img) {
+    var mw = 1280;
+    var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+    var s = Math.min(1, mw / Math.max(w, h));
+    var cw = Math.max(1, Math.round(w * s)), ch = Math.max(1, Math.round(h * s));
+    var c = document.createElement('canvas');
+    c.width = cw; c.height = ch;
+    var g = c.getContext('2d');
+    g.fillStyle = '#0b1420';
+    g.fillRect(0, 0, cw, ch);
+    g.drawImage(img, 0, 0, cw, ch);
+    try { return c.toDataURL('image/jpeg', .85); } catch (e) { return ''; }
+  }
+
+  function pushPhoto(img, url, src, name, msg) {
+    var iw = img.naturalWidth || img.width || 1;
+    var ih = img.naturalHeight || img.height || 1;
+    var pw = CARD_W - CARD_PAD * 2, ph = CARD_H - CARD_PAD * 2 - CARD_FOOT;
+    var ratio = pw / ph, sAsp = iw / ih, sw, sh, sx, sy;
+    if (sAsp > ratio) { sh = ih; sw = ih * ratio; sx = (iw - sw) / 2; sy = 0; }
+    else { sw = iw; sh = iw / ratio; sx = 0; sy = (ih - sh) / 2; }
+    var n = photos.length;
+    photos.push({
+      type: 1, img: img, url: url || '', src: src || 'local',
+      name: name || '', msg: msg || '',
+      ang: 0, angT: 0, hf: .4, hfT: .4,
+      tilt: (Math.random() - .5) * .10,
+      ph2: Math.random() * TAU,
+      pp: 0, hv: 0,
+      f: 1, px: 0, py: 0, z: 0, hit: null, badge: null,
+      sx: sx, sy: sy, sw: sw, sh: sh
+    });
+    reflow();
+    var added = photos[photos.length - 1];
+    added.ang = added.angT; added.hf = added.hfT;
+    if (!NET && state !== 'open' && !bootLoading) {
+      /* 仅编辑态：抢在开场中间加照片时直接把星星点亮、盒子落地，别卡住。
+         云端版必须排除，否则别人的照片一进来就把还没点开的礼盒自动炸开了 */
+      if (!introOff && !starClicked) { starClicked = true; starLanded = true; boxT = .9; }
+      openGift();
+    }
+  }
+
+  function reflow() {
+    var n = photos.length;
+    for (var i = 0; i < n; i++) {
+      var o = photos[i];
+      o.angT = 0.55 + i * (TAU / Math.max(1, n));
+      o.hfT = n === 1 ? .46 : (.32 + .38 * (i / (n - 1)));
+    }
+  }
+
+  /* 把一条云端祝福挂上树（图片异步加载，加载完自动 reflow） */
+  function mountGift(g) {
+    if (!g || !g.url) return;
+    if (photos.length >= MAX_PHOTO) return;
+    var im = new Image();
+    im.onload = function () {
+      if (photos.length >= MAX_PHOTO) return;
+      pushPhoto(im, g.url, 'cloud', g.name, g.msg);
+    };
+    im.onerror = function () {};
+    im.src = g.url;
+  }
+
+  /* 切到第 idx 棵树（0 开始） */
+  function gotoTree(idx) {
+    if (idx < 0 || idx >= treeCount || idx === treeIdx) return;
+
+    treeIdx = idx;
+
+    /* 换 seed 和配色。光晕是按颜色缓存的，颜色一变必须清空，否则串色 */
+    var pal = paletteOf(idx);
+    GREENS = pal.greens;
+    LIGHTS = pal.lights;
+    sprites = {};
+    seed = seedOf(idx);
+
+    pts.length = 0;
+    build();
+
+    photos.length = 0;
+    hoverObj = null;
+    var list = giftByTree[idx] || [];
+    for (var i = 0; i < list.length && i < MAX_PHOTO; i++) mountGift(list[i]);
+    reflow();
+
+    if (idx === 0) {
+      /* 只有第 1 棵保留开场动画 */
+      state = 'closed';
+      introOff = false;
+      introT = 0;
+      starClicked = false;
+      starLanded = false;
+      boxLanded = false;
+      boxT = -1;
+      starNudge = 0;
+      starHoverP = 0;
+      setWords(false);
+    } else {
+      /* 其余直接开着，不重放 */
+      state = 'open';
+      introOff = true;
+      introT = INTRO_END;
+      for (var j = 0; j < photos.length; j++) photos[j].pp = 1;
+      setWords(true);
+    }
+    updateDots();
+  }
+
+  /* 底部圆点：只有一棵时不显示 */
+  function updateDots() {
+    var el = document.getElementById('dots');
+    if (!el) return;
+    if (treeCount <= 1) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    var html = '';
+    for (var i = 0; i < treeCount; i++) {
+      html += '<i data-i="' + i + '"' + (i === treeIdx ? ' class="on"' : '') + '></i>';
+    }
+    el.innerHTML = html;
+  }
+
+  function addFiles(list) {
+    if (!list || !list.length) return;
+    var n = 0;
+    for (var i = 0; i < list.length; i++) {
+      (function (f) {
+        if (!f || !f.type || f.type.indexOf('image/') !== 0) return;
+        if (photos.length >= MAX_PHOTO) return;
+        n++;
+        var fr = new FileReader();
+        fr.onload = function () {
+          var im = new Image();
+          im.onload = function () { pushPhoto(im, normalize(im)); };
+          im.onerror = function () { flashTip('这张图读不出来'); };
+          im.src = fr.result;
+        };
+        fr.readAsDataURL(f);
+      })(list[i]);
+    }
+    if (n) setTimeout(function () {
+      if (photos.length >= MAX_PHOTO) flashTip('最多 ' + MAX_PHOTO + ' 张，先清空再加');
+    }, 300);
+    if (!n) flashTip('只认图片哦 🍬');
+  }
+
+  /* ================= 开场：礼盒 -> 照片飞散 ================= */
+  function openGift() {
+    if (state !== 'closed') return;
+    state = 'opening';
+    openT = 0;
+    burst(heroX, heroY - heroS * .5);
+    setWords(true);
+    if (!musicOn && !userMuted) startMusic();
+  }
+  function setWords(on) {
+    var w = document.getElementById('words');
+    if (w) w.className = on ? 'words on' : 'words';
+  }
+  function skipIntro() {
+    introT = STAR_HOLD;
+    starLanded = true;
+    flashTip('点一下星星');
+  }
+  function burst(x, y) {
+    for (var i = 0; i < 36; i++) {
+      var a = Math.random() * TAU, sp = 50 + Math.random() * 190;
+      sparks.push({
+        x: x, y: y,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 70,
+        life: .75 + Math.random() * .55, age: 0
+      });
+    }
+  }
+
+  /* ================= 绘制小工具 ================= */
+  function roundRect(x, y, w, h, r) {
+    r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+  function shade(hex, k) {
+    var c = hex2rgb(hex);
+    function m(v) {
+      var r = k > 0 ? v + (255 - v) * k : v * (1 + k);
+      return Math.max(0, Math.min(255, Math.round(r)));
+    }
+    return 'rgb(' + m(c[0]) + ',' + m(c[1]) + ',' + m(c[2]) + ')';
+  }
+  function starPath(x0, y0, outer, inner, spikes, a0) {
+    ctx.beginPath();
+    for (var i = 0; i < spikes * 2; i++) {
+      var r = (i % 2) ? inner : outer;
+      var a = a0 + i * Math.PI / spikes;
+      var x = x0 + Math.cos(a) * r, y = y0 + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  }
+
+  /* ================= 礼盒 ================= */
+  function drawGift(s, lift, alpha) {
+    var w = s, h = s * .78, dx = s * .30, dz = s * .26;
+    var col = '#d9463c', rib = '#ffd479';
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    /* 箱体：右侧面 */
+    ctx.beginPath();
+    ctx.moveTo(w / 2, -h);
+    ctx.lineTo(w / 2 + dx, -h - dz);
+    ctx.lineTo(w / 2 + dx, -dz);
+    ctx.lineTo(w / 2, 0);
+    ctx.closePath();
+    ctx.fillStyle = shade(col, -.34);
+    ctx.fill();
+
+    /* 箱体：正面 */
+    ctx.beginPath();
+    ctx.rect(-w / 2, -h, w, h);
+    ctx.fillStyle = shade(col, -.04);
+    ctx.fill();
+
+    /* 箱体丝带 */
+    ctx.fillStyle = rib;
+    ctx.globalAlpha = alpha * .96;
+    ctx.beginPath();
+    ctx.rect(-w * .075, -h, w * .15, h);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.rect(-w / 2, -h * .62, w, h * .12);
+    ctx.fill();
+    ctx.globalAlpha = alpha;
+
+    /* 盒盖：整体抬起 */
+    ctx.save();
+    ctx.translate(0, -lift);
+    ctx.rotate(lift * .0009);
+
+    ctx.beginPath();
+    ctx.moveTo(-w / 2 - 1, -h);
+    ctx.lineTo(-w / 2 + dx, -h - dz);
+    ctx.lineTo(w / 2 + dx, -h - dz);
+    ctx.lineTo(w / 2 + 1, -h);
+    ctx.closePath();
+    ctx.fillStyle = shade(col, .34);
+    ctx.fill();
+
+    /* 盖面丝带 */
+    ctx.fillStyle = rib;
+    ctx.beginPath();
+    ctx.moveTo(-w * .075 + dx * .5, -h - dz);
+    ctx.lineTo(w * .075 + dx * .5, -h - dz);
+    ctx.lineTo(w * .075, -h);
+    ctx.lineTo(-w * .075, -h);
+    ctx.closePath();
+    ctx.fill();
+
+    /* 蝴蝶结 */
+    var by = -h - dz - s * .04, bcx = dx * .5;
+    ctx.beginPath();
+    ctx.ellipse(bcx - w * .15, by, w * .15, w * .085, -.55, 0, TAU);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(bcx + w * .15, by, w * .15, w * .085, .55, 0, TAU);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(bcx, by + s * .01, Math.max(1.2, w * .055), 0, TAU);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  /* ================= 照片 ================= */
+  function drawPhoto(o) {
+    if (o.pp < .02) { o.hit = null; o.badge = null; return; }
+    var e = o.pp, hv = o.hv;
+    var sc = (.55 + .45 * e) * (1 + .17 * hv);
+    var w = CARD_W * o.f * sc, h = CARD_H * o.f * sc;
+    var x = o.px, y = o.py + Math.sin(Date.now() / 900 + o.ph2) * 2 * o.f;
+    o.hit = { x: x, y: y, w: Math.max(w, 46), h: Math.max(h, 46) };
+
+    var near = o.z > 0 ? .70 : 1;
+    var pad = CARD_PAD * o.f * sc, foot = CARD_FOOT * o.f * sc;
+
+    ctx.save();
+    ctx.globalAlpha = near * Math.min(1, e * 1.5);
+    ctx.translate(x, y);
+    ctx.rotate(o.tilt + Math.sin(Date.now() / 1400 + o.ph2) * .015);
+
+    ctx.shadowColor = hv > .1 ? 'rgba(255,205,130,.75)' : 'rgba(255,190,110,.42)';
+    ctx.shadowBlur = (hv > .1 ? 26 : 14) * o.f;
+    roundRect(-w / 2, -h / 2, w, h, 3.5 * o.f);
+    ctx.fillStyle = 'rgba(255,250,240,.97)';
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = hv > .1 ? 'rgba(255,232,180,1)' : 'rgba(255,214,150,.85)';
+    ctx.lineWidth = Math.max(.6, 1.1 * o.f);
+    ctx.stroke();
+
+    var pw = w - pad * 2, ph = h - pad * 2 - foot;
+    if (pw > 1 && ph > 1) {
+      ctx.save();
+      roundRect(-w / 2 + pad, -h / 2 + pad, pw, ph, 1.2 * o.f);
+      ctx.clip();
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(o.img, o.sx, o.sy, o.sw, o.sh, -w / 2 + pad, -h / 2 + pad, pw, ph);
+      ctx.imageSmoothingQuality = 'low';
+      ctx.restore();
+    }
+    ctx.restore();
+
+    /* 编辑态：悬停出删除按钮 */
+    if (EDIT && hv > .45) {
+      var bx = x + w / 2 - 9, by = y - h / 2 + 9;
+      ctx.save();
+      ctx.globalAlpha = near;
+      ctx.beginPath();
+      ctx.arc(bx, by, 8.5, 0, TAU);
+      ctx.fillStyle = 'rgba(8,16,26,.88)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,214,150,.85)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.strokeStyle = '#ffe9c4';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(bx - 3, by - 3); ctx.lineTo(bx + 3, by + 3);
+      ctx.moveTo(bx + 3, by - 3); ctx.lineTo(bx - 3, by + 3);
+      ctx.stroke();
+      ctx.restore();
+      o.badge = { x: bx, y: by, r: 12 };
+    } else {
+      o.badge = null;
+    }
+  }
+
+  /* ================= 交互 ================= */
+  /* 手势三态：'' 待定 | 'swipe' 切树 | 'rotate' 旋转。
+     第一次位移超过 12px 时定方向，锁定后不再改。 */
+  var gesture = '';
+  var swipeX = 0;
+
+  cvs.addEventListener('pointerdown', function (e) {
+    dragging = true; lastX = e.clientX;
+    downX = e.clientX; downY = e.clientY; moved = false;
+    gesture = ''; swipeX = 0;
+  });
+
+  window.addEventListener('pointerup', function (e) {
+    if (dragging) {
+      if (gesture === 'swipe') {
+        var th = W * 0.25;
+        cvs.style.transform = '';
+        if (swipeX > th && treeIdx > 0) gotoTree(treeIdx - 1);
+        else if (swipeX < -th && treeIdx < treeCount - 1) gotoTree(treeIdx + 1);
+      } else if (!gesture && !moved) {
+        /* 用按下点判定：按下后树已停转，那一刻的位置才是用户看到的位置 */
+        tap(downX, downY);
+      }
+      dragging = false;
+      gesture = '';
+      swipeX = 0;
+    }
+  });
+
+  window.addEventListener('pointermove', function (e) {
+    if (dragging) {
+      var dx = e.clientX - lastX;
+      lastX = e.clientX;
+
+      var totX = e.clientX - downX;
+      var totY = e.clientY - downY;
+
+      /* 第一次超过 12px 定方向 */
+      if (!gesture && (Math.abs(totX) > 12 || Math.abs(totY) > 12)) {
+        gesture = (Math.abs(totX) > Math.abs(totY) * 1.2) ? 'swipe' : 'rotate';
+        /* 只有一棵树时滑动没意义，直接当旋转 */
+        if (gesture === 'swipe' && treeCount <= 1) gesture = 'rotate';
+      }
+
+      if (gesture === 'swipe') {
+        swipeX = totX;
+        /* 跟手带阻尼，让"整页在动"的感觉出现但不至于晃得晕 */
+        cvs.style.transform = 'translateX(' + (swipeX * 0.35) + 'px)';
+      } else if (gesture === 'rotate') {
+        moved = true;
+        rot += dx * .006;
+        spin += dx * .5;
+        spin = Math.max(-3, Math.min(3, spin));
+      }
+    } else {
+      updateHover(e.clientX, e.clientY);
+    }
+  });
+
+  function inBox(h, x, y, pad) {
+    if (!h) return false;
+    pad = pad || 0;
+    return Math.abs(x - h.x) <= h.w / 2 + pad && Math.abs(y - h.y) <= h.h / 2 + pad;
+  }
+  function updateHover(x, y) {
+    var found = null;
+    for (var i = photos.length - 1; i >= 0; i--) {
+      var o = photos[i];
+      if (inBox(o.hit, x, y, 4)) { found = o; break; }
+    }
+    hoverObj = found;
+
+    /* 星星可点时的期待反馈 */
+    var onStar = (!introOff && !starClicked && starReady &&
+                  Math.hypot(x - starSX, y - starSY) <= starR);
+    if (onStar !== starHover) starHover = onStar;
+
+    if (found) cvs.style.cursor = 'zoom-in';
+    else if (onStar || (state === 'closed' && (boxT < 0 || boxT >= .8))) cvs.style.cursor = 'pointer';
+    else cvs.style.cursor = 'grab';
+  }
+
+  function clickStar() {
+    if (starClicked || introOff) return;
+    starClicked = true;
+    boxT = 0;
+    burst(starSX, starSY);
+    shake = .55;
+    flashTip('星星亮了 ✨');
+    if (!musicOn && !userMuted) startMusic();
+  }
+
+  function tap(x, y) {
+    if (state === 'closed') {
+      /* ① 还在生长/落星：点一下直接跳过 */
+      if (!introOff && introT < STAR_HOLD - .04) { skipIntro(); return; }
+      /* ② 等点击星星 */
+      if (!introOff && !starClicked) {
+        if (starReady && Math.hypot(x - starSX, y - starSY) <= starR) clickStar();
+        else starNudge = 1;               // 点偏了：星星闪一下，提示它在哪
+        return;
+      }
+      /* ③ 盒子下落中不理，落稳后才开 */
+      if (!introOff && boxT >= 0 && boxT < .8) return;
+      openGift();
+      return;
+    }
+    var o = hoverObj;
+    if (!o) {
+      for (var i = photos.length - 1; i >= 0; i--) {
+        if (inBox(photos[i].hit, x, y, 4)) { o = photos[i]; break; }
+      }
+    }
+    if (!o) return;
+    if (o.badge && Math.hypot(x - o.badge.x, y - o.badge.y) <= o.badge.r) {
+      removePhoto(o);
+      return;
+    }
+    showBig(o);
+  }
+
+  /* ================= 大图 ================= */
+  var lb = document.getElementById('lb'), lbImg = document.getElementById('lbImg');
+  var lbName = document.getElementById('lbName'), lbMsg = document.getElementById('lbMsg');
+  function showBig(o) {
+    if (!o.url) return;
+    lbImg.src = o.url;
+    if (lbName) lbName.textContent = o.name || '';
+    if (lbMsg) lbMsg.textContent = o.msg || '';
+    lb.classList.add('on');
+  }
+  function hideBig() { lb.classList.remove('on'); }
+  lb.addEventListener('click', hideBig);
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') hideBig();
+  });
+
+  /* ================= 增删 ================= */
+  function removePhoto(o) {
+    var i = photos.indexOf(o);
+    if (i >= 0) photos.splice(i, 1);
+    hoverObj = null;
+    reflow();
+    flashTip('删掉了一张');
+  }
+  function clearPhotos() {
+    photos.length = 0;
+    hoverObj = null;
+    state = 'closed';
+    openT = 0;
+    setWords(false);
+    flashTip('已清空，可以重新加');
+  }
+
+  /* ================= 打包 ================= */
+  function exportPage() {
+    /* 云端照片是服务器上的相对路径，打进单文件离线打开会 404，必须剔掉 */
+    var locals = photos.filter(function (o) { return o.src !== 'cloud'; });
+    if (!locals.length) { flashTip('先挂几张照片再打包'); return; }
+    var data = {
+      share: true,
+      photos: locals.map(function (o) { return o.url; })
+    };
+    var root = document.documentElement.cloneNode(true);
+    var pay = root.querySelector('#payload');
+    if (pay) pay.textContent = JSON.stringify(data);
+    var l = root.querySelector('#lb');
+    if (l) l.className = 'lb';
+    var li = root.querySelector('#lbImg');
+    if (li) li.removeAttribute('src');
+    var tz = root.querySelector('#tip');
+    if (tz) { tz.textContent = ''; tz.className = 'tip'; }
+    var tw = root.querySelector('#words');
+    if (tw) tw.className = 'words';
+    var sb = root.querySelector('#btnSound');
+    if (sb) { sb.textContent = '🔇'; sb.className = 'snd off'; }
+
+    var html = '<!DOCTYPE html>\n' + root.outerHTML;
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'index.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    flashTip('已导出 index.html —— ' + photos.length + ' 张照片已在里面');
+  }
+
+  document.getElementById('btnExport').addEventListener('click', exportPage);
+  document.getElementById('btnReplay').addEventListener('click', function () {
+    state = 'closed';
+    openT = 0;
+    introT = 0;
+    introOff = false;
+    starLanded = false;
+    boxLanded = false;
+    starClicked = false;
+    boxT = -1;
+    starNudge = 0;
+    starHoverP = 0;
+    hoverObj = null;
+    setWords(false);
+    for (var i = 0; i < photos.length; i++) photos[i].pp = 0;
+  });
+  document.getElementById('btnClear').addEventListener('click', clearPhotos);
+  document.getElementById('btnPhoto').addEventListener('click', function () {
+    document.getElementById('picker').click();
+  });
+  document.getElementById('picker').addEventListener('change', function () {
+    addFiles(this.files); this.value = '';
+  });
+  window.addEventListener('dragover', function (e) { e.preventDefault(); });
+  window.addEventListener('drop', function (e) {
+    e.preventDefault();
+    if (e.dataTransfer) addFiles(e.dataTransfer.files);
+  });
+
+  /* ================= 主循环 ================= */
+  var last = 0;
+  var NBK = 48, buckets = [];
+  for (var bi0 = 0; bi0 < NBK; bi0++) buckets.push([]);
+
+  function frame(now) {
+    var dt = Math.min(.05, (now - last) / 1000) || .016;
+    last = now;
+    var time = now / 1000;
+
+    /* 按住时停止自转：否则照片一直在移动，用户看到的位置永远点不中 */
+    if (!dragging) rot += dt * .26;
+    rot += spin * dt;
+    spin *= Math.exp(-1.7 * dt);
+
+    if (state === 'opening') {
+      openT += dt / 1.15;
+      if (openT >= 1) { openT = 1; state = 'open'; }
+    }
+    if (!introOff) {
+      if (starClicked) introT = Math.min(INTRO_END + .6, introT + dt);
+      else introT = Math.min(STAR_HOLD, introT + dt);   // 星停稳后等点击
+    }
+    if (boxT >= 0) boxT += dt;
+    if (starNudge > 0) starNudge = Math.max(0, starNudge - dt * 1.6);
+
+    var Ht = gHt, baseR = gBaseR, cx = gCx, cy = gCy, D = gD, baseY = gBaseY;
+
+    /* 礼盒几何 */
+    heroS = Math.min(118, baseR * .62);
+    heroX = cx;
+    heroZ = -0.16 * baseR;
+    heroF = D / (D + heroZ);
+    heroY = cy + (baseY + 6 - cy) * heroF;
+
+    /* 开场进度 */
+    var grow = introOff ? 1 : Math.min(1, introT / 2.0);
+    var sp = introOff ? 1 : Math.max(0, Math.min(1, (introT - 2.05) / 1.0));
+    var bp = introOff ? 1 : (boxT < 0 ? 0 : Math.min(1, boxT / .8));
+    var sinceStar = introT - 3.05;
+    var sinceBox = introOff ? 99 : (boxT < 0 ? -1 : boxT - .8);
+
+    heroDrop = (1 - Math.pow(bp, 1.8)) * (H * .52);
+    heroSquash = 1;
+    if (sinceBox > 0 && sinceBox < .32) heroSquash = 1 - .18 * Math.sin(sinceBox / .32 * Math.PI);
+    heroSince = introOff ? 99 : sinceBox;
+    if (!boxLanded && bp >= 1 && !introOff) { boxLanded = true; burst(heroX, heroY - 8); shake = .55; }
+
+    /* 底色 */
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+    ctx.drawImage(bg, 0, 0, W, H);
+
+    /* 冲击震屏（只抖场景，不抖底图） */
+    shake *= Math.exp(-dt * 7);
+    ctx.save();
+    if (shake > .012) {
+      ctx.translate((Math.random() - .5) * 9 * shake, (Math.random() - .5) * 9 * shake);
+    }
+
+    /* 地面光晕 */
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.save();
+    ctx.translate(cx, baseY);
+    ctx.scale(1, .32);
+    var gg = ctx.createRadialGradient(0, 0, 0, 0, 0, baseR * 2.4);
+    gg.addColorStop(0, 'rgba(120,196,255,.16)');
+    gg.addColorStop(.5, 'rgba(70,150,215,.05)');
+    gg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gg;
+    ctx.beginPath();
+    ctx.arc(0, 0, baseR * 2.4, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+
+    /* 树体雾光（跟随生长） */
+    var glowK = grow < 1 ? grow * grow : 1;
+    if (glowK > .004) {
+      for (var k = 0; k < 8; k++) {
+        var ht2 = (k + .5) / 8;
+        var hy2 = cy + Ht * .5 - ht2 * Ht;
+        var hr2 = Math.max(26, baseR * (1 - ht2) * 1.18);
+        var hg2 = ctx.createRadialGradient(cx, hy2, 0, cx, hy2, hr2);
+        hg2.addColorStop(0, 'rgba(46,194,126,' + (.055 * (1 - ht2 * .55) * glowK).toFixed(3) + ')');
+        hg2.addColorStop(.55, 'rgba(26,140,95,' + (.018 * glowK).toFixed(3) + ')');
+        hg2.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = hg2;
+        ctx.beginPath();
+        ctx.ellipse(cx, hy2, hr2, hr2 * .62, 0, 0, TAU);
+        ctx.fill();
+      }
+    }
+
+    /* ---- 树点投影（含"飞入式生长"：按高度错开出发，从树根飞向自己的位置） ---- */
+    var i, p;
+    var growing = !introOff && introT < 2.2;
+    for (i = 0; i < pts.length; i++) {
+      p = pts[i];
+      var a = p.ang + rot;
+      var rr = p.rn * baseR;
+      var tx0 = Math.cos(a) * rr;
+      var tz0 = Math.sin(a) * rr;
+      var ty0 = cy + Ht * .5 - p.hf * Ht;
+      if (growing) {
+        /* 整棵树按比例长大 + 按高度错开一点点，形成由下往上的"涌起" */
+        var T = introT / 2.05;
+        var lag = p.hf * .16;
+        var tm = (T - lag) / (1 - .16);
+        if (tm < 0) tm = 0; else if (tm > 1) tm = 1;
+        var ge = 1 - Math.pow(1 - tm, 3);
+        var sc = .10 + .90 * ge;
+        tx0 *= sc;
+        tz0 *= sc;
+        ty0 = baseY + (ty0 - baseY) * sc;
+        p.gp = tm;
+      } else {
+        p.gp = 1;
+      }
+      p.x = tx0;
+      p.z = tz0;
+      p.y = ty0;
+    }
+
+    /* ---- 照片投影 ---- */
+    var ring = baseR * 1.05;
+    for (i = 0; i < photos.length; i++) {
+      var o = photos[i];
+      o.ang += (o.angT - o.ang) * Math.min(1, dt * 5);
+      o.hf += (o.hfT - o.hf) * Math.min(1, dt * 5);
+
+      var target = state === 'closed' ? 0 : 1;
+      var spd = state === 'opening' ? 5.5 : 3.2;
+      o.pp += (target - o.pp) * Math.min(1, dt * spd);
+
+      var ang2 = o.ang + rot;
+      var tx = Math.cos(ang2) * ring;
+      var tz = Math.sin(ang2) * ring;
+      var ty = cy + Ht * .5 - o.hf * Ht;
+      var sx0 = 0, sy0 = baseY - heroS * .30, sz0 = heroZ;
+
+      var ex = o.pp;
+      var px3 = sx0 + (tx - sx0) * ex;
+      var py3 = sy0 + (ty - sy0) * ex - Math.sin(ex * Math.PI) * 60;
+      var pz3 = sz0 + (tz - sz0) * ex;
+
+      o.f = D / (D + pz3);
+      o.px = cx + px3 * o.f;
+      o.py = cy + (py3 - cy) * o.f;
+      o.z = pz3;
+
+      var want = (o === hoverObj) ? 1 : 0;
+      o.hv += (want - o.hv) * Math.min(1, dt * 12);
+    }
+
+    /* ---- 按深度分桶（O(n) 取代每帧 sort，视觉等价） ---- */
+    var NB = 48;
+    var zLo = -baseR * 1.35, zSpan = baseR * 2.7;
+    var bk, bj, bArr, bIt;
+    for (bk = 0; bk < NB; bk++) buckets[bk].length = 0;
+    for (i = 0; i < pts.length; i++) {
+      bk = ((zLo + zSpan - pts[i].z) / zSpan * NB) | 0;
+      if (bk < 0) bk = 0; else if (bk >= NB) bk = NB - 1;
+      buckets[bk].push(pts[i]);
+    }
+    for (i = 0; i < photos.length; i++) {
+      bk = ((zLo + zSpan - photos[i].z) / zSpan * NB) | 0;
+      if (bk < 0) bk = 0; else if (bk >= NB) bk = NB - 1;
+      buckets[bk].push(photos[i]);
+    }
+    if (state === 'closed' || state === 'opening') {
+      heroObj.x = heroX; heroObj.y = heroY; heroObj.z = heroZ;
+      bk = ((zLo + zSpan - heroZ) / zSpan * NB) | 0;
+      if (bk < 0) bk = 0; else if (bk >= NB) bk = NB - 1;
+      buckets[bk].push(heroObj);
+    }
+
+    /* ---- 绘制（远 → 近） ---- */
+    ctx.globalCompositeOperation = 'lighter';
+    for (bk = 0; bk < NB; bk++) {
+      bArr = buckets[bk];
+      for (bj = 0; bj < bArr.length; bj++) {
+        bIt = bArr[bj];
+        if (bIt.type === 1) {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.globalAlpha = 1;
+          drawPhoto(bIt);
+          ctx.globalCompositeOperation = 'lighter';
+        } else if (bIt.type === 2) {
+          drawHero(time);
+        } else {
+          var f = D / (D + bIt.z);
+          var sx = cx + bIt.x * f;
+          var sy = cy + (bIt.y - cy) * f;
+          var tw = .5 + .5 * Math.sin(time * bIt.freq + bIt.phase);
+          var al = bIt.baseA * (1 - bIt.amp + bIt.amp * tw);
+          if (al > 1) al = 1;
+          var w = bIt.size * f * bIt.glow * (1 + .18 * bIt.amp * tw);
+          /* 生长中：由暗到亮、由小到大 */
+          if (bIt.gp < 1) {
+            al *= .12 + .88 * bIt.gp;
+            w *= .35 + .65 * bIt.gp;
+          }
+          ctx.globalAlpha = al;
+          ctx.drawImage(sprite(bIt.color, bIt.lamp), sx - w / 2, sy - w / 2, w, w);
+        }
+      }
+    }
+
+    /* ---- 顶端星：从天而降 ---- */
+    var topY = cy - Ht * .5 - Ht * .02;
+    var pulse = .82 + .18 * Math.sin(time * 1.9);
+
+    var starY = topY, starA = 1, trail = 0;
+    if (sp < 1) {
+      var se = Math.pow(sp, 1.7);             // 加速下坠
+      starY = -60 + (topY + 60) * se;
+      trail = 1 - sp;
+      if (sp < .12) starA = sp / .12;
+    } else if (sinceStar >= 0 && sinceStar < .45) {
+      starY -= Math.sin(sinceStar / .45 * Math.PI) * 13 * (1 - sinceStar / .45);
+    }
+    if (!starLanded && sp >= 1 && !introOff) {
+      starLanded = true;
+      burst(cx, topY);
+      shake = 1;
+    }
+
+    /* 坠落时喷粒子留尾（顶点发射器思路） */
+    if (!introOff && sp > .15 && sp < .99) {
+      for (var ei = 0; ei < 2; ei++) {
+        sparks.push({
+          x: cx + (Math.random() - .5) * 12,
+          y: starY + (Math.random() - .5) * 12,
+          vx: (Math.random() - .5) * 34,
+          vy: 26 + Math.random() * 46,
+          life: .26 + Math.random() * .3,
+          age: 0
+        });
+      }
+    }
+
+    if (trail > .02) {
+      var th = 40 + 190 * trail;
+      var tgr = ctx.createLinearGradient(0, starY - th, 0, starY);
+      tgr.addColorStop(0, 'rgba(255,214,140,0)');
+      tgr.addColorStop(.75, 'rgba(255,214,140,.22)');
+      tgr.addColorStop(1, 'rgba(255,226,170,.5)');
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = tgr;
+      ctx.fillRect(cx - 9, starY - th, 18, th);
+      ctx.fillRect(cx - 2.5, starY - th, 5, th);
+    }
+
+    /* ---- 顶端星：从天而降 → 停住等点击 ---- */
+    var topY = cy - Ht * .5 - Ht * .02;
+    var pulse = .90 + .10 * Math.sin(time * 1.9);
+    var starHoverK = starHover ? 1 : 0;
+    if (starHoverK > starHoverP) starHoverP = Math.min(1, starHoverP + dt * 8);
+    else starHoverP = Math.max(0, starHoverP - dt * 8);
+    var starScale = pulse * (1 + .13 * starHoverP + .30 * starNudge);
+
+    var starY = topY, starA = 1, trail = 0;
+    if (sp < 1) {
+      var se = Math.pow(sp, 1.7);
+      starY = -60 + (topY + 60) * se;
+      trail = 1 - sp;
+      if (sp < .12) starA = sp / .12;
+    } else if (sinceStar >= 0 && sinceStar < .45) {
+      starY -= Math.sin(sinceStar / .45 * Math.PI) * 13 * (1 - sinceStar / .45);
+    }
+    if (!starLanded && sp >= 1 && !introOff) {
+      starLanded = true;
+      burst(cx, topY);
+      shake = 1;
+    }
+
+    /* 坠落时喷粒子留尾 */
+    if (!introOff && sp > .15 && sp < .99) {
+      for (var ei = 0; ei < 2; ei++) {
+        sparks.push({
+          x: cx + (Math.random() - .5) * 12,
+          y: starY + (Math.random() - .5) * 12,
+          vx: (Math.random() - .5) * 34,
+          vy: 26 + Math.random() * 46,
+          life: .26 + Math.random() * .3,
+          age: 0
+        });
+      }
+    }
+
+    /* 拖尾 */
+    if (trail > .02) {
+      var th = 40 + 190 * trail;
+      var tgr = ctx.createLinearGradient(0, starY - th, 0, starY);
+      tgr.addColorStop(0, 'rgba(255,214,140,0)');
+      tgr.addColorStop(.75, 'rgba(255,214,140,.22)');
+      tgr.addColorStop(1, 'rgba(255,226,170,.5)');
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = tgr;
+      ctx.fillRect(cx - 9, starY - th, 18, th);
+      ctx.fillRect(cx - 2.5, starY - th, 5, th);
+    }
+
+    /* 可点击判定用 */
+    starSX = cx;
+    starSY = starY;
+    starR = 26 * starScale + 34;
+    starReady = (sp >= 1);
+
+    /* 外层大光晕 + 内层亮核 */
+    ctx.globalAlpha = .85 * starA;
+    var halo = 150 * starScale * (sp < 1 ? .85 : 1);
+    ctx.drawImage(sprite('#ffd479'), cx - halo / 2, starY - halo / 2, halo, halo);
+    ctx.globalAlpha = .9 * starA;
+    var core = 46 * starScale;
+    ctx.drawImage(sprite('#fff4cf', true), cx - core / 2, starY - core / 2, core, core);
+
+    /* 星芒：四道锥形光束 */
+    if (sp >= 1) {
+      var beamA = .55 * starA;
+      var spinA = time * .10 - Math.PI / 2;
+      for (var bq = 0; bq < 4; bq++) {
+        var bang = spinA + bq * Math.PI / 2;
+        var blen = (bq % 2 === 0 ? 128 : 96) * (0.9 + .1 * starScale);
+        ctx.save();
+        ctx.translate(cx, starY);
+        ctx.rotate(bang);
+        var bgr = ctx.createLinearGradient(0, 0, 0, -blen);
+        bgr.addColorStop(0, 'rgba(255,244,210,' + (beamA).toFixed(3) + ')');
+        bgr.addColorStop(.45, 'rgba(255,224,160,' + (beamA * .35).toFixed(3) + ')');
+        bgr.addColorStop(1, 'rgba(255,214,140,0)');
+        ctx.fillStyle = bgr;
+        ctx.beginPath();
+        ctx.moveTo(-3.2, 0);
+        ctx.lineTo(3.2, 0);
+        ctx.lineTo(0, -blen);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    /* 星形本体：中心白、边缘暖金 */
+    ctx.globalAlpha = .98 * starA;
+    starPath(cx, starY, 22 * starScale, 22 * starScale * .42, 5, time * .10 - Math.PI / 2);
+    var sgr = ctx.createRadialGradient(cx, starY, 0, cx, starY, 22 * starScale);
+    sgr.addColorStop(0, 'rgba(255,255,255,1)');
+    sgr.addColorStop(.42, 'rgba(255,248,218,.99)');
+    sgr.addColorStop(1, 'rgba(255,212,118,.88)');
+    ctx.fillStyle = sgr;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,238,186,.75)';
+    ctx.lineWidth = .9;
+    ctx.stroke();
+
+    /* 等点击时：星星右侧飘提示（放在侧边，任何窗口高度都不会被裁掉） */
+    if (sp >= 1 && !starClicked && !introOff) {
+      var hfade2 = Math.min(1, Math.max(0, (sinceStar - .15) * 2.2));
+      if (hfade2 > 0) {
+        var hta = hfade2 * (.70 + .30 * Math.sin(time * 2.4));
+        var hl = '点 一 下 星 星';
+        ctx.font = '500 13px "Microsoft YaHei","PingFang SC",system-ui,sans-serif';
+        ctx.textAlign = 'left';
+        var hw2 = ctx.measureText(hl).width;
+        var hx2 = cx + 40, hy2 = topY - 15;
+        ctx.globalAlpha = hta * .8;
+        ctx.fillStyle = 'rgba(4,10,18,.55)';
+        roundRect(hx2, hy2, hw2 + 26, 28, 14);
+        ctx.fill();
+        ctx.globalAlpha = hta;
+        ctx.shadowColor = 'rgba(255,200,120,.9)';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#fff0cf';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(hl, hx2 + 13, hy2 + 15);
+        ctx.textBaseline = 'alphabetic';
+        ctx.shadowBlur = 0;
+      }
+    }
+    ctx.globalAlpha = 1;
+
+    /* ---- 火光 ---- */
+    for (i = sparks.length - 1; i >= 0; i--) {
+      var sk = sparks[i];
+      sk.age += dt;
+      if (sk.age > sk.life) { sparks.splice(i, 1); continue; }
+      sk.vy += 300 * dt;
+      sk.x += sk.vx * dt;
+      sk.y += sk.vy * dt;
+      var kk = 1 - sk.age / sk.life;
+      ctx.globalAlpha = kk * .9;
+      ctx.drawImage(sprite('#ffd479'), sk.x - 10, sk.y - 10, 20, 20);
+    }
+
+    /* ---- 雪 ---- */
+    for (i = 0; i < flakes.length; i++) {
+      var fl = flakes[i];
+      fl.y += fl.vy * dt;
+      fl.x += (fl.vx + Math.sin(time * .7 + fl.ph) * 11) * dt;
+      if (fl.y > H + 10) { fl.y = -10; fl.x = Math.random() * W; }
+      if (fl.x < -12) fl.x = W + 12;
+      if (fl.x > W + 12) fl.x = -12;
+      ctx.globalAlpha = fl.a;
+      ctx.fillStyle = '#eaf4ff';
+      ctx.beginPath();
+      ctx.arc(fl.x, fl.y, fl.r, 0, TAU);
+      ctx.fill();
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.restore();
+    requestAnimationFrame(frame);
+  }
+
+  var heroObj = { type: 2, x: 0, y: 0, z: 0 };
+
+  function drawHero(time) {
+    var liftP = 0, alpha = 1;
+    if (state === 'opening') {
+      liftP = Math.min(1, openT / .5);
+      alpha = 1 - Math.max(0, Math.min(1, (openT - .30) / .35));
+    }
+    /* 从天而降时淡入 */
+    if (!introOff && state === 'closed') alpha *= (boxT < 0 ? 0 : Math.min(1, boxT / .25));
+    if (alpha <= .01) return;
+
+    var lift = ease(liftP) * heroS * .55;
+
+    /* 地面落影：离地越高越小越淡 */
+    if (state !== 'opening') {
+      var shk = Math.max(0, 1 - heroDrop / (H * .9));
+      ctx.save();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.ellipse(heroX, heroY, heroS * .68 * heroF * (.35 + .65 * shk),
+                  heroS * .17 * heroF * (.35 + .65 * shk), 0, 0, TAU);
+      ctx.fillStyle = 'rgba(0,8,16,' + (.45 * shk).toFixed(3) + ')';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.translate(heroX, heroY - heroDrop);
+
+    /* 关闭时的光晕与呼吸 */
+    if (state === 'closed') {
+      var pulse = .85 + .15 * Math.sin(time * 1.6);
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = .55 * pulse;
+      ctx.drawImage(sprite('#ffd479'), -heroS * .95, -heroS * 1.25, heroS * 1.9, heroS * 1.9);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    ctx.scale(heroF, heroF * heroSquash);
+    drawGift(heroS, lift, alpha);
+
+    /* 提示文字：落稳之后才出现 */
+    if (state === 'closed' && heroSince > .35) {
+      var ta = .72 + .28 * Math.sin(time * 2.2);
+      var label = '点 一 下 礼 盒';
+      ctx.font = '500 14px "Microsoft YaHei","PingFang SC",system-ui,sans-serif';
+      ctx.textAlign = 'center';
+      var tw2 = ctx.measureText(label).width;
+      ctx.globalAlpha = Math.min(1, (heroSince - .35) * 3) * .9;
+      ctx.fillStyle = 'rgba(4,10,18,.5)';
+      roundRect(-tw2 / 2 - 16, 17, tw2 + 32, 29, 14.5);
+      ctx.fill();
+      ctx.globalAlpha = ta;
+      ctx.shadowColor = 'rgba(255,190,110,.85)';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#ffe6c0';
+      ctx.fillText(label, 0, 34);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  }
+
+  function ease(t) { return 1 - Math.pow(1 - t, 3); }
+
+  /* ================= 背景音乐：Jingle Bells（八音盒合成） =================
+     不引外部音频文件：用 Web Audio 现场合成，打包后依然能响，也不占体积。 */
+  var AC = null, musicGain = null, musicOn = false, userMuted = false;
+  var musicTimer = 0, nextAt = 0, EV = null;
+  var BEAT_SEC = 0.5;                 // 120 BPM
+
+  var MEL_BARS = [
+    [[76, 1], [76, 1], [76, 2]],
+    [[76, 1], [76, 1], [76, 2]],
+    [[76, 1], [79, 1], [72, 1], [74, 1]],
+    [[76, 4]],
+    [[77, 1], [77, 1], [77, 2]],
+    [[77, 1], [76, 1], [76, 2]],
+    [[76, 1], [74, 1], [74, 1], [76, 1]],
+    [[74, 2], [79, 2]],
+    [[76, 1], [76, 1], [76, 2]],
+    [[76, 1], [76, 1], [76, 2]],
+    [[76, 1], [79, 1], [72, 1], [74, 1]],
+    [[76, 4]],
+    [[77, 1], [77, 1], [77, 2]],
+    [[77, 1], [76, 1], [76, 2]],
+    [[79, 1], [79, 1], [77, 1], [74, 1]],
+    [[72, 4]]
+  ];
+  var BASS_ROOTS = [48, 48, 48, 48, 53, 53, 48, 55, 48, 48, 48, 48, 53, 53, 53, 48];
+
+  function midiF(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+
+  function buildEvents() {
+    var list = [], beat = 0, b, i, bar, t;
+    for (b = 0; b < MEL_BARS.length; b++) {
+      bar = MEL_BARS[b]; t = beat;
+      for (i = 0; i < bar.length; i++) {
+        list.push({ beat: t, midi: bar[i][0], dur: bar[i][1], vol: .30 });
+        t += bar[i][1];
+      }
+      list.push({ beat: beat, midi: BASS_ROOTS[b], dur: 4, vol: .15, bass: true });
+      beat += 4;
+    }
+    return { list: list, total: beat };
+  }
+
+  function makeIR(dur, decay) {
+    var rate = AC.sampleRate, len = Math.max(1, Math.floor(rate * dur));
+    var buf = AC.createBuffer(2, len, rate);
+    for (var c = 0; c < 2; c++) {
+      var d = buf.getChannelData(c);
+      for (var i = 0; i < len; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+      }
+    }
+    return buf;
+  }
+
+  function ensureAudio() {
+    if (AC) return;
+    var Ctor = window.AudioContext || window.webkitAudioContext;
+    if (!Ctor) return;
+    try { AC = new Ctor(); } catch (e) { AC = null; return; }
+    musicGain = AC.createGain();
+    musicGain.gain.value = 0.0001;
+
+    var dry = AC.createGain(); dry.gain.value = .80;
+    musicGain.connect(dry); dry.connect(AC.destination);
+
+    var conv = AC.createConvolver();
+    conv.buffer = makeIR(1.9, 2.6);
+    var wet = AC.createGain(); wet.gain.value = .40;
+    musicGain.connect(conv); conv.connect(wet); wet.connect(AC.destination);
+  }
+
+  function partial(f, t, vol, mul, dec) {
+    var o = AC.createOscillator(), g = AC.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(f * mul, t);
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(.0002, vol), t + .012);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dec);
+    o.connect(g); g.connect(musicGain);
+    o.start(t); o.stop(t + dec + .06);
+  }
+
+  function bell(f, t, vol) {
+    partial(f, t, vol, 1, 1.7);
+    partial(f * 2, t, vol * .40, 1, 1.05);
+    partial(f * 3.01, t, vol * .16, 1, .55);
+  }
+
+  function pad(f, t, dur, vol) {
+    var o = AC.createOscillator(), g = AC.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t + .45);
+    g.gain.linearRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(musicGain);
+    o.start(t); o.stop(t + dur + .06);
+  }
+
+  function schedule(from) {
+    var B = BEAT_SEC, i, e, t;
+    for (i = 0; i < EV.list.length; i++) {
+      e = EV.list[i];
+      t = from + e.beat * B;
+      if (e.bass) pad(midiF(e.midi), t, e.dur * B, e.vol);
+      else bell(midiF(e.midi), t, e.vol);
+    }
+    return from + EV.total * B;
+  }
+
+  function pump() {
+    if (!AC || !musicOn) return;
+    if (!EV) EV = buildEvents();
+    var now = AC.currentTime;
+    if (nextAt < now - 1) nextAt = now + .2;
+    if (nextAt < now + 1.2) nextAt = schedule(nextAt);
+  }
+
+  function setSoundBtn(on) {
+    var b = document.getElementById('btnSound');
+    if (!b) return;
+    b.textContent = on ? '🔊' : '🔇';
+    b.className = on ? 'snd' : 'snd off';
+  }
+
+  function startMusic() {
+    if (musicOn) return;
+    ensureAudio();
+    if (!AC) return;
+    if (AC.state === 'suspended' && AC.resume) AC.resume();
+    musicOn = true;
+    if (!EV) EV = buildEvents();
+    var t0 = AC.currentTime;
+    musicGain.gain.cancelScheduledValues(t0);
+    musicGain.gain.setValueAtTime(Math.max(.0001, musicGain.gain.value), t0);
+    musicGain.gain.linearRampToValueAtTime(.55, t0 + 1.6);
+    nextAt = t0 + .25;
+    pump();
+    if (!musicTimer) musicTimer = setInterval(pump, 250);
+    setSoundBtn(true);
+  }
+
+  function stopMusic() {
+    if (!AC) { musicOn = false; setSoundBtn(false); return; }
+    musicOn = false;
+    var t0 = AC.currentTime;
+    musicGain.gain.cancelScheduledValues(t0);
+    musicGain.gain.setValueAtTime(Math.max(.0001, musicGain.gain.value), t0);
+    musicGain.gain.linearRampToValueAtTime(.0001, t0 + .7);
+    setSoundBtn(false);
+  }
+
+  /* 有任何交互就尝试恢复音频（自动播放策略兜底） */
+  function kickAudio() {
+    if (AC && musicOn && AC.state === 'suspended' && AC.resume) AC.resume();
+  }
+  window.addEventListener('pointerdown', kickAudio, true);
+  window.addEventListener('keydown', kickAudio, true);
+
+  (function bindSound() {
+    var b = document.getElementById('btnSound');
+    if (!b) return;
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (musicOn) { userMuted = true; stopMusic(); }
+      else { userMuted = false; startMusic(); }
+    });
+  })();
+
+  /* ================= 初始化 ================= */
+  window.addEventListener('resize', resize);
+  resize();
+
+  if (!EDIT) {
+    var tools = document.getElementById('tools');
+    if (tools) tools.style.display = 'none';
+    var tp = document.getElementById('tip');
+    if (tp) {
+      if (NET) {
+        /* 云端版还要用 flashTip 弹「挂上去了 ✓」，只清空文字，别把元素关掉 */
+        tp.textContent = '';
+        tp.className = 'tip';
+      } else {
+        tp.style.display = 'none';
+      }
+    }
+    state = 'closed';
+    setWords(false);
+  } else {
+    /* 编辑态：打开页面时先摆好礼盒，同时把已加照片摊开 */
+    if (photos.length) { state = 'open'; openT = 1; photos.forEach(function (o) { o.pp = 1; }); setWords(true); }
+  }
+  /* 已经是打开状态（编辑态有照片）就不再放开场动画 */
+  if (state === 'open') { introOff = true; introT = INTRO_END; }
+
+  /* 载入打包进来的照片 */
+  (function loadPayload() {
+    var list = cfg.photos || [];
+    if (!list.length) return;
+    bootLoading = true;
+    var pending = list.length;
+    for (var i = 0; i < list.length; i++) {
+      (function (url) {
+        var im = new Image();
+        im.onload = function () {
+          pushPhoto(im, url);
+          if (--pending <= 0) {
+            bootLoading = false;
+            if (state === 'open') {
+              for (var j = 0; j < photos.length; j++) photos[j].pp = 1;
+            }
+          }
+        };
+        im.onerror = function () { if (--pending <= 0) bootLoading = false; };
+        im.src = url;
+      })(list[i]);
+    }
+  })();
+
+  /* ================= 云端版：挂祝福 + 轮询 ================= */
+  (function cloudJoin() {
+    if (!NET) return;
+
+    var btnGift   = document.getElementById('btnGift');
+    var sheet     = document.getElementById('sheet');
+    var gPicker   = document.getElementById('gPicker');
+    var gPrev     = document.getElementById('gPrev');
+    var gName     = document.getElementById('gName');
+    var gMsg      = document.getElementById('gMsg');
+    var gSend     = document.getElementById('gSend');
+    var gErr      = document.getElementById('gErr');
+    var gCancel   = document.getElementById('gCancel');
+    var pickLabel = document.getElementById('gPickLabel');
+    if (!btnGift || !sheet) return;
+
+    btnGift.style.display = '';
+
+    var picked = '';      /* 压好的 dataURL */
+    var lastTs = 0;       /* 轮询水位 */
+    var known  = {};      /* 已上树的 id，防重复 */
+    var busy   = false;
+
+    function openSheet() { gErr.textContent = ''; sheet.classList.add('on'); }
+    function closeSheet() { sheet.classList.remove('on'); }
+
+    btnGift.addEventListener('click', function (e) { e.stopPropagation(); openSheet(); });
+    gCancel.addEventListener('click', function (e) { e.stopPropagation(); closeSheet(); });
+    sheet.addEventListener('click', function (e) { if (e.target === sheet) closeSheet(); });
+
+    /* 选图 -> 压到长边 900 -> 预览 */
+    pickLabel.addEventListener('click', function () { gPicker.click(); });
+    gPicker.addEventListener('change', function () {
+      var f = this.files && this.files[0];
+      this.value = '';
+      if (!f) return;
+
+      /* 微信有时返回空 MIME，靠扩展名兜底；横图竖图一视同仁 */
+      var looksImage = (!f.type || f.type.indexOf('image/') === 0 ||
+                        /\.(jpe?g|png|webp|bmp|heic|heif)$/i.test(f.name || ''));
+      if (!looksImage) { gErr.textContent = '只认图片哦'; return; }
+      if (f.size > 20 * 1024 * 1024) {
+        gErr.textContent = '这张图超过 20MB，先在相册里压一下';
+        return;
+      }
+
+      gErr.textContent = '';
+      gPrev.textContent = '正在处理…';
+
+      var fr = new FileReader();
+      fr.onerror = function () {
+        gPrev.textContent = '＋ 选一张照片';
+        gErr.textContent = '读不出这个文件，换一张试试';
+      };
+      fr.onload = function () {
+        var im = new Image();
+        im.onload = function () {
+          try {
+            var max = 900;
+            var w = im.naturalWidth || im.width;
+            var h = im.naturalHeight || im.height;
+            if (!w || !h) throw new Error('size');
+
+            var s = Math.min(1, max / Math.max(w, h));
+            var cw = Math.max(1, Math.round(w * s));
+            var ch = Math.max(1, Math.round(h * s));
+            var c = document.createElement('canvas');
+            c.width = cw;
+            c.height = ch;
+            var g2 = c.getContext('2d');
+            g2.fillStyle = '#0b1420';
+            g2.fillRect(0, 0, cw, ch);
+            g2.drawImage(im, 0, 0, cw, ch);
+
+            /* 超 700KB 就降质量重压，最多降 4 次 */
+            var q = 0.8;
+            var out = c.toDataURL('image/jpeg', q);
+            var guard = 0;
+            while (out.length > 700 * 1024 && q > 0.35 && guard++ < 4) {
+              q -= 0.15;
+              out = c.toDataURL('image/jpeg', q);
+            }
+
+            if (!out || out.indexOf('data:image') !== 0 || out.length < 200) throw new Error('encode');
+
+            picked = out;
+            gPrev.innerHTML = '';
+            var pv = document.createElement('img');
+            pv.src = picked;
+            gPrev.appendChild(pv);
+            gErr.textContent = '';
+          } catch (err) {
+            picked = '';
+            gPrev.textContent = '＋ 选一张照片';
+            gErr.textContent = '这张图处理失败，换一张试试';
+          }
+        };
+        im.onerror = function () {
+          picked = '';
+          gPrev.textContent = '＋ 选一张照片';
+          gErr.textContent = '这张图读不出来（可能是 HEIC），先在相册存成 JPG';
+        };
+        im.src = fr.result;
+      };
+      fr.readAsDataURL(f);
+    });
+
+    /* 提交 */
+    gSend.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (busy) return;
+      var name = (gName.value || '').trim();
+      var msg = (gMsg.value || '').trim();
+      if (!name) { gErr.textContent = '写个名字吧'; return; }
+      if (!msg) { gErr.textContent = '写一句话吧'; return; }
+      if (!picked) { gErr.textContent = '先选一张照片'; return; }
+
+      busy = true;
+      gSend.disabled = true;
+      gSend.textContent = '正在挂…';
+      gErr.textContent = '';
+
+      fetch('/api/gift', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, msg: msg, photo: picked })
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (j) {
+          return { code: r.status, body: j };
+        });
+      }).then(function (res) {
+        if (res.body && res.body.ok) {
+          closeSheet();
+          gName.value = '';
+          gMsg.value = '';
+          picked = '';
+          gPrev.textContent = '＋ 选一张照片';
+
+          var target = (res.body.tree || 1) - 1;
+
+          poll().then(function () {
+            if (target !== treeIdx && target < treeCount) {
+              gotoTree(target);
+              flashTip('满 12 张啦，已经放到第 ' + (target + 1) + ' 棵树上');
+            } else {
+              flashTip('挂上去了 ✓');
+            }
+          });
+        } else {
+          gErr.textContent = (res.body && res.body.msg) || '没挂上，稍后再试';
+        }
+      }).catch(function () {
+        gErr.textContent = '网络不太好，再试一次';
+      }).then(function () {
+        busy = false;
+        gSend.disabled = false;
+        gSend.textContent = '挂上去';
+      });
+    });
+
+    /* 收到一条云端祝福：按 tree 归组，只有当前这棵立刻上树 */
+    function addGift(g) {
+      if (!g || !g.id || known[g.id]) return;
+      known[g.id] = 1;
+      if (g.ts > lastTs) lastTs = g.ts;
+
+      var t = (g.tree || 1) - 1;
+      giftByTree[t] = giftByTree[t] || [];
+      giftByTree[t].push(g);
+
+      if (t + 1 > treeCount) {
+        treeCount = t + 1;
+        updateDots();
+      }
+
+      /* 其他树的照片等切过去再挂，避免挤爆当前这棵 */
+      if (t === treeIdx) mountGift(g);
+    }
+
+    function poll() {
+      var u = '/api/gifts' + (lastTs ? ('?since=' + lastTs) : '');
+      return fetch(u, { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j || !j.ok) return;
+          /* 后端告诉我们现在一共几棵 */
+          if (j.trees && j.trees > treeCount) {
+            treeCount = j.trees;
+            updateDots();
+          }
+          if (!j.gifts || !j.gifts.length) return;
+          j.gifts.sort(function (a, b) { return a.ts - b.ts; });
+          var i = 0;
+          return new Promise(function (done) {
+            (function step() {
+              if (i >= j.gifts.length) { done(); return; }
+              addGift(j.gifts[i++]);
+              setTimeout(step, 260);   /* 一张一张飞，不扎堆 */
+            })();
+          });
+        })
+        .catch(function () {});
+    }
+
+    poll();
+    setInterval(poll, 20000);
+  })();
+
+  /* ================= 多树导航 ================= */
+  (function initDots() {
+    var el = document.getElementById('dots');
+    if (!el) return;
+    el.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t && t.tagName === 'I') {
+        e.stopPropagation();
+        var i = Number(t.getAttribute('data-i'));
+        if (isFinite(i)) gotoTree(i);
+      }
+    });
+    updateDots();
+  })();
+
+  requestAnimationFrame(function (t) { last = t; frame(t); });
+  setTimeout(function () { document.body.className += ' ready'; }, 80);
+})();
+</script>
+</body>
+</html>

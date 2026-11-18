@@ -1,0 +1,34 @@
+# 复制成 Caddyfile，把 your-domain.example.com 换成你自己的域名
+# （Caddy 会自动申请 Let's Encrypt 证书，前提：域名已解析到本机、80/443 已放行）
+your-domain.example.com {
+	encode gzip
+
+	# 接口：反代到容器内网的 Node（不对外开端口）
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	# 照片：只暴露 uploads 目录；root 指向 /giftsdata 而不是站点的 /data
+	handle /uploads/* {
+		root * /giftsdata
+		file_server
+		header {
+			Cache-Control "public, max-age=3600"
+			X-Content-Type-Options nosniff
+		}
+	}
+
+	# 其余全部走静态页
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+
+	# 安全响应头
+	header {
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
