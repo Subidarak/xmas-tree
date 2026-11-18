@@ -4,7 +4,9 @@
 
 ## 在线演示
 
-`https://<你的用户名>.github.io/xmas-tree/`
+**https://subidarak.github.io/xmas-tree/**
+
+打开就能玩：点星星 → 点礼盒 → 拖张照片进页面，照片会绕树排成一圈。
 
 ## 交互
 
