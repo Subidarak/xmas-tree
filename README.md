@@ -47,15 +47,6 @@
 python -m http.server 8000   # 然后访问 http://localhost:8000
 ```
 
-## 发布到 GitHub Pages
-
-1. 仓库 → **Settings** → 左侧 **Pages**
-2. **Source** 选 `Deploy from a branch`
-3. **Branch** 选 `main`、目录选 `/ (root)`，**Save**
-4. 等 1 分钟左右，访问 `https://<你的用户名>.github.io/<仓库名>/`
-
-根目录已放 `.nojekyll`，静态文件会原样发出。
-
 ## 云端多人版
 
 `cloud/` 里是「朋友扫码进来、自己选照片写名字挂到树上」的完整实现：Caddy 负责 HTTPS 与静态托管，Node 只跑两个接口（列表 / 投稿），数据和照片落在宿主机目录。部署方式见 [cloud/README.md](cloud/README.md)。需要自己的域名和一台小服务器。
